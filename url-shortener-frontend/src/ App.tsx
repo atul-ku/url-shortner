@@ -3,14 +3,6 @@ import Navbar from './components/Navbar'
 import ResultCard from './components/ResultCard'
 import { useUrlShortener } from './hooks/useUrlShortener'
 
-const FEATURES = [
-  { icon: '⚡', label: 'Redis-cached redirects' },
-  { icon: '📊', label: 'Click analytics' },
-  { icon: '🔒', label: 'Rate limited API' },
-  { icon: '🐳', label: 'Docker ready' },
-  { icon: '☸️',  label: 'Kubernetes deployable' },
-]
-
 export default function App() {
   const [inputUrl, setInputUrl] = useState('')
   const [inputError, setInputError] = useState(false)
@@ -59,7 +51,7 @@ export default function App() {
 
           <h1 style={{
             fontSize: 'clamp(34px, 6vw, 70px)', fontWeight: 800,
-            lineHeight: 1.05, letterSpacing: '-2px', marginBottom: 16,
+            lineHeight: 1.05, letterSpacing: '-2px', marginBottom: 40,
           }}>
             Shorten. Share.<br />
             <span style={{
@@ -69,14 +61,6 @@ export default function App() {
               Track everything.
             </span>
           </h1>
-
-          <p style={{
-            fontSize: 16, color: 'var(--muted)', maxWidth: 440,
-            lineHeight: 1.65, marginBottom: 48,
-          }}>
-            Paste any long URL and get a clean, shareable short link in milliseconds —
-            powered by Node.js, Redis &amp; PostgreSQL.
-          </p>
 
           {/* Input card */}
           <div style={{
@@ -142,22 +126,21 @@ export default function App() {
           {result && <ResultCard result={result} onDelete={handleDelete} />}
         </main>
 
-        {/* Feature pills */}
-        <footer style={{
-          display: 'flex', justifyContent: 'center',
-          gap: 10, flexWrap: 'wrap', padding: '0 24px 48px',
+        {/* Features section */}
+        <section style={{
+          padding: '40px 24px', background: 'var(--surface)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32,
         }}>
-          {FEATURES.map(f => (
-            <div key={f.label} style={{
-              background: 'var(--surface)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)', padding: '12px 18px',
-              display: 'flex', alignItems: 'center', gap: 8,
-              fontSize: 13, color: 'var(--muted)',
-            }}>
-              <span style={{ fontSize: 16 }}>{f.icon}</span>
-              {f.label}
-            </div>
-          ))}
+          <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.02em' }}>
+            Built for developers, by a developer.
+          </h2>
+        </section>
+
+        <footer style={{
+          padding: '24px', textAlign: 'center',
+          fontSize: 14, color: 'var(--muted)',
+        }}>
+          Made with 💖 by <a href="https://www.linkedin.com/in/atul-kumar-mnnit/" target="_blank" rel="noopener noreferrer">Atul</a>
         </footer>
       </div>
     </>
