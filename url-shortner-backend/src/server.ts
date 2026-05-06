@@ -1,6 +1,3 @@
-// Load environment variables FIRST before any other imports.
-// dotenv reads .env and populates process.env so that all other
-// modules (database.ts, redis.ts, etc.) can access them at import time.
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,23 +9,16 @@ const PORT = process.env.PORT || 3000;
 
 const start = async (): Promise<void> => {
   try {
-    // Verify DB is reachable before accepting any traffic.
-    // If the DB is down, we exit early rather than serving broken requests.
     await connectDB();
-
     // Redis connects automatically when the client is created (in redis.ts).
     // We just log the status via the event listeners defined there.
 
     app.listen(PORT, () => {
       console.log(`\n🚀 Server running at http://localhost:${PORT}`);
-      console.log(`❤️  Health check: http://localhost:${PORT}/health`);
-      console.log(`📎 Shorten URL:   POST http://localhost:${PORT}/api/shorten`);
-      console.log(`↗️  Redirect:      GET  http://localhost:${PORT}/:code\n`);
+      console.log(`👂 Health check: http://localhost:${PORT}/health`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
-    // process.exit(1) tells the OS / Docker / Kubernetes the process failed.
-    // This triggers a container restart in production.
     process.exit(1);
   }
 };

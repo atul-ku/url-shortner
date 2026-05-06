@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import morgan from 'morgan';
 import urlRoutes from './routes/url.routes';
 
 const app = express();
@@ -9,13 +10,9 @@ const app = express();
 // helmet() sets ~15 HTTP security headers automatically (XSS protection,
 // content-type sniffing prevention, etc.). One line = many security wins.
 app.use(helmet());
-
-// cors() allows browsers from different origins to call your API.
-// Without this, your React frontend (port 5173) can't call the API (port 3000).
 app.use(cors());
-
-// Parse JSON request bodies automatically
 app.use(express.json());
+app.use(morgan('dev')); // log HTTP requests to the console (method, path, status, response time)
 
 // ── Health check ─────────────────────────────────────────────────────────────
 // This endpoint is used by Docker, Kubernetes, and AWS to know if the service

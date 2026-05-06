@@ -14,8 +14,6 @@ export const shortenUrl = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Use the built-in URL constructor for validation — no regex needed.
-    // It throws if the URL is malformed (missing protocol, etc.)
     try {
       new URL(url);
     } catch {
