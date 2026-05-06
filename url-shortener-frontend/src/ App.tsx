@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Navbar from './components/Navbar'
 import ResultCard from './components/ResultCard'
 import { useUrlShortener } from './hooks/useUrlShortener'
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function App() {
   const [inputUrl, setInputUrl] = useState('')
@@ -9,13 +10,15 @@ export default function App() {
   const { result, loading, error, shorten, remove, reset } = useUrlShortener()
 
   const handleShorten = async () => {
-    // Validate URL format in the browser before hitting the API
     try { new URL(inputUrl) } catch {
       setInputError(true)
       setTimeout(() => setInputError(false), 1000)
+      toast.error('Please enter a valid URL.')
       return
     }
     await shorten(inputUrl)
+    setInputUrl('');
+    toast.success('URL shortened successfully!')
   }
 
   const handleDelete = async () => {
@@ -23,12 +26,14 @@ export default function App() {
       await remove(result.short_code)
       setInputUrl('')
       reset()
+      toast.success('URL deleted successfully!')
     }
   }
 
   return (
     <>
-      {/* Ambient background orbs */}
+      <Toaster />
+
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <div className="orb orb-3" />
@@ -110,7 +115,6 @@ export default function App() {
             No account needed · Links never expire by default
           </div>
 
-          {/* API error message */}
           {error && (
             <div className="animate-up" style={{
               marginTop: 16, padding: '12px 20px',
@@ -122,7 +126,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Result card */}
           {result && <ResultCard result={result} onDelete={handleDelete} />}
         </main>
 
