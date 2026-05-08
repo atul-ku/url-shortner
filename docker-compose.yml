@@ -1,0 +1,114 @@
+version: '3.9'
+
+# ── Shared environment for the API ──────────────────────────────────────────
+# Using YAML anchors (&api-env / *api-env) so we don't repeat the same
+# variables if we add more services later that need DB access.
+x-api-env: &api-env
+  NODE_ENV:        production
+  PORT:            3000
+  BASE_URL:        http://localhost
+  DB_HOST:         postgres          # ← Docker DNS: resolves to the postgres container IP
+  DB_PORT:         5432
+  DB_NAME:         ${DB_NAME:-url_shortener}
+  DB_USER:         ${DB_USER:-postgres}
+  DB_PASSWORD:     ${DB_PASSWORD:-password}    # reads from .env, falls back to "password"
+  REDIS_HOST:      redis             # ← Docker DNS: resolves to the redis container IP
+  REDIS_PORT:      6379
+  CACHE_TTL_SECONDS: 3600
+
+services:
+
+  # ── 1. PostgreSQL ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: url_shortener_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-url_shortener}
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d url_shortener"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+      start_period: 15s
+    networks:
+      - url-shortener-net
+
+  # ── 2. Redis ───────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: url_shortener_cache
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+      start_period: 10s
+    networks:
+      - url-shortener-net
+
+  # ── 3. API (Node.js + Express) ─────────────────────────────────────────────
+  api:
+    build:
+      context: ./url-shortener-backend      # path to your backend folder
+      dockerfile: Dockerfile
+    container_name: url_shortener_api
+    restart: unless-stopped
+    environment: *api-env           # pulls in the YAML anchor defined above
+    # depends_on + condition: service_healthy means Docker waits until
+    # Postgres and Redis pass their health checks before starting the API.
+    # Without this, the API starts instantly and crashes because the DB
+    # isn't ready yet — a very common beginner Docker mistake.
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # API port also NOT exposed to host — Nginx proxies to it internally
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+      start_period: 15s
+    networks:
+      - url-shortener-net
+
+  # ── 4. Web (React + Nginx) ──────────────────────────────────────────────────
+  web:
+    build:
+      context: ./url-shortener-frontend    # path to your frontend folder
+      dockerfile: Dockerfile
+    container_name: url_shortener_web
+    restart: unless-stopped
+    ports:
+      # This is the ONLY port exposed to your machine and the internet.
+      # All traffic flows through here.
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - url-shortener-net
+
+# ── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    # Docker manages this volume — data lives in /var/lib/docker/volumes/
+    # It persists even if you run `docker compose down`.
+    # Only `docker compose down --volumes` deletes it.
+
+# ── Network ──────────────────────────────────────────────────────────────────
+networks:
+  url-shortener-net:
+    driver: bridge
+    # All 4 containers share this network.
+    # They can reach each other by service name (Docker's internal DNS).
+    # Nothing outside this network can reach postgres or redis directly.
