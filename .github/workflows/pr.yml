@@ -21,6 +21,9 @@ concurrency:
   group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # These env vars are used by the test suite to connect to the test DB and Redis services
+
 jobs:
   validate:
     name: Lint + Test
