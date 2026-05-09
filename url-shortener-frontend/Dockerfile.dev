@@ -6,6 +6,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+COPY index.html ./ 
 RUN npm ci
 
 # Source code comes from bind mount in docker-compose.dev.yml

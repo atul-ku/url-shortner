@@ -20,12 +20,12 @@ services:
   api:
     # Override the production build with a simple dev image
     build:
-      context: ./url-shortner-backend
+      context: ./url-shortener-backend
       dockerfile: Dockerfile.dev          # lighter Dockerfile, no multi-stage
     volumes:
       # Bind mount: your local src/ → container src/
       # Every file save on your machine is instantly visible inside the container
-      - ./url-shortner-backend/src:/app/src
+      - ./url-shortener-backend/src:/app/src
       # Prevent local node_modules from overwriting the container's node_modules
       # This is called an "anonymous volume trick" — container keeps its own node_modules
       - /app/node_modules
@@ -39,12 +39,14 @@ services:
   # ── Web — hot reload via Vite HMR ────────────────────────────────────────
   web:
     build:
-      context: ./url-shortner-frontend
+      context: ./url-shortener-frontend
       dockerfile: Dockerfile.dev
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3000   # In development, the frontend talks directly to the API on port 3000. In production, it goes through Nginx, so the base URL is just /api.
     volumes:
       # Bind mount: your local src/ → container src/
-      - ./url-shortner-frontend/src:/app/src
-      - ./url-shortner-frontend/public:/app/public
+      - ./url-shortener-frontend/src:/app/src
+      - ./url-shortener-frontend/public:/app/public
       # Anonymous volume trick for node_modules
       - /app/node_modules
     ports:
