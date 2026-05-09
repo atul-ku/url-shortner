@@ -1,0 +1,19 @@
+# Development only — single stage, no multi-stage build needed.
+# Source code is bind-mounted at runtime so we don't COPY src here.
+# nodemon watches for file changes and restarts ts-node automatically.
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy only config files — source code comes from the bind mount
+COPY tsconfig.json ./
+
+EXPOSE 3000
+
+# nodemon + ts-node = TypeScript hot reload
+# Every time you save a .ts file locally, nodemon restarts the server
+CMD ["npm", "run", "dev"]

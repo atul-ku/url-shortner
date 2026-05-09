@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.dev.yml — DEVELOPMENT ONLY
+#
+# This file overrides docker-compose.yml for local development.
+# Key differences from production:
+#   1. Source code is bind-mounted — changes reflect instantly, no rebuild
+#   2. Nodemon watches backend files and restarts on save
+#   3. Vite dev server runs with HMR (Hot Module Replacement) for frontend
+#   4. Ports are exposed so you can debug directly
+#   5. No multi-stage builds — faster container startup
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   (shortcut in package.json: npm run docker:dev)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── API — hot reload via nodemon ──────────────────────────────────────────
+  api:
+    # Override the production build with a simple dev image
+    build:
+      context: ./url-shortner-backend
+      dockerfile: Dockerfile.dev          # lighter Dockerfile, no multi-stage
+    volumes:
+      # Bind mount: your local src/ → container src/
+      # Every file save on your machine is instantly visible inside the container
+      - ./url-shortner-backend/src:/app/src
+      # Prevent local node_modules from overwriting the container's node_modules
+      # This is called an "anonymous volume trick" — container keeps its own node_modules
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+    ports:
+      # Expose port 3000 directly so you can test API without going through Nginx
+      - "3000:3000"
+    command: npm run dev     # runs nodemon — restarts on every .ts file save
+
+  # ── Web — hot reload via Vite HMR ────────────────────────────────────────
+  web:
+    build:
+      context: ./url-shortner-frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      # Bind mount: your local src/ → container src/
+      - ./url-shortner-frontend/src:/app/src
+      - ./url-shortner-frontend/public:/app/public
+      # Anonymous volume trick for node_modules
+      - /app/node_modules
+    ports:
+      # Vite dev server runs on 5173 — access frontend here in development
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3000   # direct to API in dev
+    command: npm run dev -- --host   # --host exposes Vite outside the container
+
+  # ── Postgres — same as production ────────────────────────────────────────
+  postgres:
+    ports:
+      - "5432:5432"    # expose so you can connect with TablePlus/DBeaver
+
+  # ── Redis — same as production ────────────────────────────────────────────
+  redis:
+    ports:
+      - "6379:6379"    # expose so you can inspect with RedisInsight

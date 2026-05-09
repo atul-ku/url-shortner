@@ -1,0 +1,17 @@
+# Development only — runs Vite dev server with Hot Module Replacement.
+# Source code is bind-mounted so every file save = instant browser update.
+# No Nginx, no build step, no static files — pure Vite dev server.
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Source code comes from bind mount in docker-compose.dev.yml
+# We only need package files here
+
+EXPOSE 5173
+
+# --host makes Vite listen on 0.0.0.0 so it's reachable outside the container
+CMD ["npm", "run", "dev", "--", "--host"]
