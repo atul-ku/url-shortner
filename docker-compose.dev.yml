@@ -41,8 +41,6 @@ services:
     build:
       context: ./url-shortener-frontend
       dockerfile: Dockerfile.dev
-    environment:
-      - VITE_API_BASE_URL=http://localhost:3000   # In development, the frontend talks directly to the API on port 3000. In production, it goes through Nginx, so the base URL is just /api.
     volumes:
       # Bind mount: your local src/ → container src/
       - ./url-shortener-frontend/src:/app/src
