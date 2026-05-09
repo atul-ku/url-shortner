@@ -23,7 +23,7 @@ services:
       context: ./url-shortener-backend
       dockerfile: Dockerfile.dev          # lighter Dockerfile, no multi-stage
     env_file:
-      - ./url-shortner-backend/.env.development
+      - ./url-shortener-backend/.env.development
     volumes:
       # Bind mount: your local src/ → container src/
       # Every file save on your machine is instantly visible inside the container
@@ -44,7 +44,7 @@ services:
       args:
         - VITE_API_BASE_URL=http://localhost:3000   # Pass the API URL as a build arg for the frontend Dockerfile
     env_file:
-      - ./url-shortner-frontend/.env.development
+      - ./url-shortener-frontend/.env.development
     volumes:
       # Bind mount: your local src/ → container src/
       - ./url-shortener-frontend/src:/app/src

@@ -60,7 +60,7 @@ services:
     container_name: url_shortener_api
     restart: unless-stopped
     env_file:
-      - ./url-shortner-backend/.env.production
+      - ./url-shortener-backend/.env.production
     # environment: *api-env           # pulls in the YAML anchor defined above
     # depends_on + condition: service_healthy means Docker waits until
     # Postgres and Redis pass their health checks before starting the API.
