@@ -1,5 +1,3 @@
-version: '3.9'
-
 # ── Shared environment for the API ──────────────────────────────────────────
 # Using YAML anchors (&api-env / *api-env) so we don't repeat the same
 # variables if we add more services later that need DB access.
