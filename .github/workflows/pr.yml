@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# pr.yml — Pull Request Validation
+#
+# Runs on every PR to give fast feedback to developers.
+# Lighter than the full CI — no Docker build, no image push.
+# Just lint + test so PRs get a green/red check in under 2 minutes.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: PR Check
+
+on:
+  pull_request:
+    branches: [main]
+    # Only run when these paths change — skip if only docs or configs changed
+    paths:
+      - 'url-shortener-backend/**'
+      - 'url-shortener-frontend/**'
+      - '.github/workflows/**'
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint + Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB:       url_shortener
+          POSTGRES_USER:     postgres
+          POSTGRES_PASSWORD: testpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: url-shortener-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: url-shortener-backend
+        run: npm ci
+
+      - name: TypeScript check
+        working-directory: url-shortener-backend
+        run: npx tsc --noEmit
+
+      - name: Run database migrations
+        working-directory: url-shortener-backend
+        env:
+          PGPASSWORD: testpassword
+        run: psql -h localhost -U postgres -d url_shortener -f init.sql
+
+      - name: Run tests
+        working-directory: url-shortener-backend
+        env:
+          NODE_ENV:    test
+          PORT:        3000
+          BASE_URL:    http://localhost:3000
+          DB_HOST:     localhost
+          DB_PORT:     5432
+          DB_USER:     postgres
+          DB_PASSWORD: testpassword
+          DB_NAME:     url_shortener
+          REDIS_HOST:  localhost
+          REDIS_PORT:  6379
+          CACHE_TTL_SECONDS: 3600
+          JWT_SECRET:  test_jwt_secret
+        run: npm test
