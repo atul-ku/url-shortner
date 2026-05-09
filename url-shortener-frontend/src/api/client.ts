@@ -4,7 +4,7 @@ import axios from 'axios'
 // In dev, Vite's proxy rewrites /api/* → http://localhost:3000/api/*
 // In production, BASE_URL points to your real API domain.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL || '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 8000,
   headers: { 'Content-Type': 'application/json' },
 })

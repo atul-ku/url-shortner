@@ -1,18 +1,18 @@
 # ── Shared environment for the API ──────────────────────────────────────────
 # Using YAML anchors (&api-env / *api-env) so we don't repeat the same
 # variables if we add more services later that need DB access.
-x-api-env: &api-env
-  NODE_ENV:        production
-  PORT:            3000
-  BASE_URL:        http://localhost
-  DB_HOST:         postgres          # ← Docker DNS: resolves to the postgres container IP
-  DB_PORT:         5432
-  DB_NAME:         ${DB_NAME:-url_shortener}
-  DB_USER:         ${DB_USER:-postgres}
-  DB_PASSWORD:     ${DB_PASSWORD:-password}    # reads from .env, falls back to "password"
-  REDIS_HOST:      redis             # ← Docker DNS: resolves to the redis container IP
-  REDIS_PORT:      6379
-  CACHE_TTL_SECONDS: 3600
+# x-api-env: &api-env
+#   NODE_ENV:        production
+#   PORT:            3000
+#   BASE_URL:        http://localhost
+#   DB_HOST:         postgres          # ← Docker DNS: resolves to the postgres container IP
+#   DB_PORT:         5432
+#   DB_NAME:         ${DB_NAME:-url_shortener}
+#   DB_USER:         ${DB_USER:-postgres}
+#   DB_PASSWORD:     ${DB_PASSWORD:-password}    # reads from .env, falls back to "password"
+#   REDIS_HOST:      redis             # ← Docker DNS: resolves to the redis container IP
+#   REDIS_PORT:      6379
+#   CACHE_TTL_SECONDS: 3600
 
 services:
 
@@ -59,7 +59,9 @@ services:
       dockerfile: Dockerfile
     container_name: url_shortener_api
     restart: unless-stopped
-    environment: *api-env           # pulls in the YAML anchor defined above
+    env_file:
+      - ./url-shortner-backend/.env.production
+    # environment: *api-env           # pulls in the YAML anchor defined above
     # depends_on + condition: service_healthy means Docker waits until
     # Postgres and Redis pass their health checks before starting the API.
     # Without this, the API starts instantly and crashes because the DB
