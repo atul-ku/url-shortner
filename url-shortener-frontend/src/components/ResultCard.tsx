@@ -7,7 +7,8 @@ interface Props {
 }
 
 export default function ResultCard({ result, onDelete }: Props) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
+  const [countClicks, setCountClicks] = useState(0);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(result.short_url)
@@ -40,6 +41,7 @@ export default function ResultCard({ result, onDelete }: Props) {
             href={result.short_url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => setCountClicks(countClicks+1)}
             style={{
               fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 600,
               color: 'var(--cyan)', flex: 1, wordBreak: 'break-all',
@@ -73,7 +75,7 @@ export default function ResultCard({ result, onDelete }: Props) {
         {/* Stats boxes */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
           {[
-            { val: '0',         col: 'var(--cyan)',   key: 'Total clicks' },
+            { val: countClicks,         col: 'var(--cyan)',   key: 'Total clicks' },
             { val: createdDate, col: 'var(--violet)', key: 'Created' },
             { val: '∞',         col: 'var(--coral)',  key: 'Expires' },
           ].map(({ val, col, key }) => (
