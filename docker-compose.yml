@@ -57,7 +57,7 @@ services:
   # ── 3. API (Node.js + Express) ─────────────────────────────────────────────
   api:
     build:
-      context: ./url-shortener-backend      # path to your backend folder
+      context: ./url-shortner-backend      # path to your backend folder
       dockerfile: Dockerfile
     container_name: url_shortener_api
     restart: unless-stopped
