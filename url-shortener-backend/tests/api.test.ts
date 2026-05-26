@@ -1,5 +1,6 @@
 import request from 'supertest';
 import app from '../src/app';
+import { after } from 'node:test';
 
 // Note: These are integration tests — they need PostgreSQL + Redis running.
 // Run `docker compose up -d` before running tests.
@@ -76,4 +77,8 @@ describe('GET /health', () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
   });
+});
+
+after(async () => {
+  await request(app).post('/api/test/cleanup');
 });
