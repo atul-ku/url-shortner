@@ -183,7 +183,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./url-shortener-backend
-          dockerfile: ./url-shortener-backend/Dockerfile
+          file: ./url-shortener-backend/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-api.outputs.tags }}
           cache-from: type=registry,ref=${{ env.API_IMAGE }}:cache
@@ -193,7 +193,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./url-shortener-frontend
-          dockerfile: ./url-shortener-frontend/Dockerfile
+          file: ./url-shortener-frontend/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-web.outputs.tags }}
           build-args: |
