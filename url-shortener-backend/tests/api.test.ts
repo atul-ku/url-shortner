@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../src/app';
-import { connectDB } from '../src/config/database';
 import { redis } from '../src/config/redis';
 
 // Note: These are integration tests — they need PostgreSQL + Redis running.
@@ -85,11 +84,6 @@ afterAll(async () => {
     // Gracefully shut down the Redis client connection
     if (redis) {
       await redis.quit();
-    }
-
-    // Gracefully drain and close the PostgreSQL connection pool
-    if (connectDB) {
-      await connectDB().then((client) => client.end());
     }
   } catch (error) {
     console.error('Error during test teardown:', error);

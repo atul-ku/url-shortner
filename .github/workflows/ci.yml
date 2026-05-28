@@ -128,7 +128,7 @@ jobs:
           REDIS_PORT:  6379
           CACHE_TTL_SECONDS: 3600
           JWT_SECRET:  test_jwt_secret
-        run: npm test
+        run: npm test -- --forceExit
 
   # ── Job 3: Build & Push Docker images ──────────────────────────────────────
   build-and-push:
