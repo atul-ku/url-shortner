@@ -29,10 +29,23 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Temporary workaround for GHCR auth issue in some actions
   # Image names in GHCR follow the pattern: ghcr.io/OWNER/REPO/SERVICE
   REGISTRY: ghcr.io
-  API_IMAGE: ghcr.io/${{ github.repository_owner }}/url-shortener-api
-  WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/url-shortener-web
 
 jobs:
+  # ── Job 0: Setup Environment ─────────────────────────────────────────────────
+  setup-env:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    outputs:
+      api_image: ${{ steps.lowercase.outputs.api_image }}
+      web_image: ${{ steps.lowercase.outputs.web_image }}
+    steps:
+      - id: lowercase
+        run: |
+          API_LOWER=$(echo "ghcr.io/${{ github.repository_owner }}/url-shortener-api" | tr '[:upper:]' '[:lower:]')
+          WEB_LOWER=$(echo "ghcr.io/${{ github.repository_owner }}/url-shortener-web" | tr '[:upper:]' '[:lower:]')
+          echo "api_image=$API_LOWER" >> $GITHUB_OUTPUT
+          echo "web_image=$WEB_LOWER" >> $GITHUB_OUTPUT
+
   # ── Job 1: Lint ─────────────────────────────────────────────────────────────
   lint:
     name: Lint
@@ -136,7 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only push images when code lands on main (not on PRs from forks)
     # PRs still build images to verify they compile — just don't push them
-    needs: [lint, test]   # only runs if lint AND test pass
+    needs: [setup-env, lint, test]   # only runs if lint AND test pass
 
     steps:
       - name: Checkout code
@@ -162,7 +175,7 @@ jobs:
         id: meta-api
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.API_IMAGE }}
+          images: ${{ needs.setup-env.outputs.api_image }}
           tags: |
             type=raw,value=latest
             type=sha,prefix=sha-
@@ -171,7 +184,7 @@ jobs:
         id: meta-web
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.WEB_IMAGE }}
+          images: ${{ needs.setup-env.outputs.web_image }}
           tags: |
             type=raw,value=latest
             type=sha,prefix=sha-
@@ -186,8 +199,8 @@ jobs:
           file: ./url-shortener-backend/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-api.outputs.tags }}
-          cache-from: type=registry,ref=${{ env.API_IMAGE }}:cache
-          cache-to:   type=registry,ref=${{ env.API_IMAGE }}:cache,mode=max
+          cache-from: type=registry,ref=${{ needs.setup-env.outputs.api_image }}:cache
+          cache-to:   type=registry,ref=${{ needs.setup-env.outputs.api_image }}:cache,mode=max
 
       - name: Build and push Web image
         uses: docker/build-push-action@v5
@@ -198,5 +211,5 @@ jobs:
           tags: ${{ steps.meta-web.outputs.tags }}
           build-args: |
             VITE_API_BASE_URL=
-          cache-from: type=registry,ref=${{ env.WEB_IMAGE }}:cache
-          cache-to:   type=registry,ref=${{ env.WEB_IMAGE }}:cache,mode=max
+          cache-from: type=registry,ref=${{ needs.setup-env.outputs.web_image }}:cache
+          cache-to:   type=registry,ref=${{ needs.setup-env.outputs.web_image }}:cache,mode=max
