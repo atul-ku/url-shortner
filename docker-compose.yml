@@ -59,8 +59,20 @@ services:
       dockerfile: Dockerfile
     container_name: url_shortener_api
     restart: unless-stopped
-    env_file:
-      - ./url-shortener-backend/.env.production
+    environment:
+      NODE_ENV:          production
+      PORT:              3000
+      BASE_URL:          ${BASE_URL:-http://localhost}
+      DB_HOST:           postgres
+      DB_PORT:           5432
+      DB_USER:           ${DB_USER:-postgres}
+      DB_PASSWORD:       ${DB_PASSWORD:-password}
+      DB_NAME:           ${DB_NAME:-url_shortener}
+      REDIS_HOST:        redis
+      REDIS_PORT:        6379
+      REDIS_PASSWORD:    ${REDIS_PASSWORD:-}
+      CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-3600}
+      JWT_SECRET:        ${JWT_SECRET}
     # environment: *api-env           # pulls in the YAML anchor defined above
     # depends_on + condition: service_healthy means Docker waits until
     # Postgres and Redis pass their health checks before starting the API.
