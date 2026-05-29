@@ -54,9 +54,7 @@ services:
 
   # ── 3. API (Node.js + Express) ─────────────────────────────────────────────
   api:
-    build:
-      context: ./url-shortener-backend      # path to your backend folder
-      dockerfile: Dockerfile
+    image: ghcr.io/atul-ku/url-shortener-api:latest
     container_name: url_shortener_api
     restart: unless-stopped
     environment:
@@ -95,9 +93,7 @@ services:
 
   # ── 4. Web (React + Nginx) ──────────────────────────────────────────────────
   web:
-    build:
-      context: ./url-shortener-frontend    # path to your frontend folder
-      dockerfile: Dockerfile
+    image: ghcr.io/atul-ku/url-shortener-web:latest
     container_name: url_shortener_web
     restart: unless-stopped
     ports:
