@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: url-shortener-config
+  namespace: default
+# ConfigMap stores non-sensitive configuration.
+# These values are injected into pods as environment variables.
+# Think of this as your .env file — but without the secrets.
+data:
+  NODE_ENV:          "production"
+  PORT:              "3000"
+  BASE_URL:          "http://localhost"   # update to your domain later
+  DB_HOST:           "postgres-service"  # ← K8s Service name, not localhost
+  DB_PORT:           "5432"
+  DB_NAME:           "url_shortener"
+  DB_USER:           "postgres"
+  REDIS_HOST:        "redis-service"     # ← K8s Service name, not localhost
+  REDIS_PORT:        "6379"
+  CACHE_TTL_SECONDS: "3600"

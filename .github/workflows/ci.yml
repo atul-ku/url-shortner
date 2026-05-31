@@ -199,6 +199,7 @@ jobs:
           file: ./url-shortener-backend/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-api.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=${{ needs.setup-env.outputs.api_image }}:cache
           cache-to:   type=registry,ref=${{ needs.setup-env.outputs.api_image }}:cache,mode=max
 
@@ -209,6 +210,7 @@ jobs:
           file: ./url-shortener-frontend/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta-web.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
           build-args: |
             VITE_API_BASE_URL=
           cache-from: type=registry,ref=${{ needs.setup-env.outputs.web_image }}:cache

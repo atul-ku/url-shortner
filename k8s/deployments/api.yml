@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: default
+spec:
+  replicas: 2       # run 2 API instances — if one crashes, the other handles traffic
+  selector:
+    matchLabels:
+      app: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # create 1 new pod before removing old ones
+      maxUnavailable: 0  # never have zero pods — zero downtime deploys
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          # Replace YOUR_GITHUB_USERNAME with your actual GitHub username (lowercase)
+          image: ghcr.io/atul-ku/url-shortener-api:latest
+          imagePullPolicy: Always   # always pull latest — important for CD
+          ports:
+            - containerPort: 3000
+          # Load all non-sensitive config from ConfigMap
+          envFrom:
+            - configMapRef:
+                name: url-shortener-config
+          # Load sensitive config from Secret
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: url-shortener-secret
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          # livenessProbe — restart pod if it stops responding
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            failureThreshold: 3
+          # readinessProbe — only send traffic when app is fully started
+          # This prevents traffic going to a pod that's still connecting to DB
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+      # Pull image from GHCR (private registry)
+      imagePullSecrets:
+        - name: ghcr-secret   # we'll create this secret in the setup commands
+
+---
+# Service — internal load balancer across all API pods
+# Ingress will route traffic to this service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: default
+spec:
+  selector:
+    app: api
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP
